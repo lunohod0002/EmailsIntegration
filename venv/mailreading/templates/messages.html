@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    /* стили для прогресс-бара */
+  .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+  .progress-bar-inner {
+      width: 0%;
+      height: 100%;
+      background-color: #4CAF50;
+      border-radius: 5px;
+    }
+  .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    </style>
+</head>
+<body>
+<div class="progress-bar">
+    <div class="progress-bar-inner" style="width: 0%;"></div>
+    <span class="progress-text">Чтение сообщений...</span>
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Тема</th>
+        <th>Дата отправки</th>
+        <th>Дата получения</th>
+        <th>Описание</th>
+
+    </tr>
+    </thead>
+    <tbody id="message-list">
+    </tbody>
+</table>
+  <script>
+ var socket = new WebSocket('ws://localhost:8000/ws/emails/');
+ socket.onopen = function(event) {
+    console.log('Connected to the WebSocket server');
+    let credentials = "{{ credentials|escapejs }}";
+    console.log(credentials);
+
+    socket.send(credentials)
+
+ };
+
+socket.onmessage=function(event){
+    var messageData =JSON.parse(event.data);
+    console.log(messageData);
+    let count=messageData.count
+    displayMessage(messageData)
+    updateProgressBar(messageData.count,messageData.index)
+
+}
+    // функция обновления прогресс-бара
+    function updateProgressBar(count,index) {
+      const progressBar = document.querySelector('.progress-bar-inner');
+      progressBar.style.width = `${Math.floor(index/count)}%`;
+      const progressText = document.querySelector('.progress-text');
+      progressText.textContent = `Прочитано: (${index}  из (${count} писем)`;
+      }
+
+
+    // функция отображения сообщения в таблице
+    function displayMessage(message) {
+      const messageList = document.querySelector('#message-list');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${message.id}</td>
+        <td>${message.theme}</td>
+        <td>${message.date_of_dispatch}</td>
+        <td>${message.date_of_receive}</td>
+        <td>${message.text}</td>
+      `;
+      messageList.appendChild(row);
+    }
+  </script>
+</body>
+</html>
