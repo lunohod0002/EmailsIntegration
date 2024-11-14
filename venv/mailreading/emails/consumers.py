@@ -6,6 +6,7 @@ from ast import literal_eval
 from .parser import parse_message, get_from_email
 import re
 
+
 class MessagesConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
@@ -31,6 +32,5 @@ class MessagesConsumer(AsyncWebsocketConsumer):
         message = event['message']
         dct = await get_from_email(message)
         await asyncio.sleep(1)
-        print(dct)
 
         await self.send(json.dumps(dct, cls=DjangoJSONEncoder))

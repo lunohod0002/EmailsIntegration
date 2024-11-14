@@ -16,12 +16,6 @@ def login_view(request):
             if (User.objects.filter(login=login).exists() == False):
                 User.objects.create(login=login, password=password)
 
-            '''mail_pass = "AkN1jNsDZmH9MrwT7hjr"
-            login = "1611586@mail.ru"
-            mail_name = "mail.ru
-            george2704@mail.r"
-            mNhCfRMdZ7CLjx2bQvZB'''
-
             context = {'credentials': {'mail_pass': password, 'login': login, 'mail_name': 'mail.ru'}}
             return render(request, 'messages.html', context=context)
 
@@ -29,4 +23,4 @@ def login_view(request):
 
 
 def messages_view(request):
-    return render(request, 'emails.html', context={'text': 'Hello World!'})
+    return render(request, 'messages.html', context={'text': 'Hello World!'})

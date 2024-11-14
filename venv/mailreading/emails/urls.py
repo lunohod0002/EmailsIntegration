@@ -3,6 +3,6 @@ from .views import login_view,messages_view
 
 urlpatterns = [
     path("login/", login_view),
-    path("emails/", messages_view),
+    path("messages/", messages_view),
 
 ]

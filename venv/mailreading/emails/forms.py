@@ -1,6 +1,4 @@
-from django import forms
-from .models import User  # импортируйте вашу модель
-
+from django import forms\
 
 class LoginForm(forms.Form):
     login = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'login'}))
