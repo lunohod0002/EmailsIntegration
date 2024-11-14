@@ -1,12 +1,10 @@
 import asyncio
 import json
-
+from django.core.serializers.json import DjangoJSONEncoder
 from channels.generic.websocket import AsyncWebsocketConsumer
 from ast import literal_eval
-from .parser import parse_message,get_from_email
+from .parser import parse_message, get_from_email
 import re
-from .models import Email, File
-
 
 class MessagesConsumer(AsyncWebsocketConsumer):
 
@@ -21,7 +19,7 @@ class MessagesConsumer(AsyncWebsocketConsumer):
             self.group_name,
             self.channel_name,
         )
-        parse_message(text_data['mail_pass'], text_data['login'], text_data['mail_name'])
+        asyncio.create_task(parse_message(text_data['mail_pass'], text_data['login'], text_data['mail_name']))
 
     async def disconnect(self, code):
         await self.channel_layer.group_discard(
@@ -31,8 +29,8 @@ class MessagesConsumer(AsyncWebsocketConsumer):
 
     async def send_messages(self, event):
         message = event['message']
-        dct=await get_from_email(message)
+        dct = await get_from_email(message)
         await asyncio.sleep(1)
+        print(dct)
 
-        await self.send(json.dumps(dct))
-        await asyncio.sleep(1)
+        await self.send(json.dumps(dct, cls=DjangoJSONEncoder))

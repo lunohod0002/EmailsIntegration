@@ -11,8 +11,8 @@ class User(models.Model):
 
 class Email(models.Model):
     theme = models.CharField(max_length=255)
-    date_of_dispatch = models.DateField()
-    date_of_receive = models.DateField()
+    date_of_dispatch = models.DateTimeField()
+    date_of_receive = models.DateTimeField()
     description = models.TextField()
     files = models.CharField(max_length=255,default=None)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -23,7 +23,7 @@ class Email(models.Model):
 
 class File(models.Model):
     file = models.BinaryField()
-    filename = models.CharField(max_length=255)
+    filename = models.CharField(max_length=255,default=None)
     email = models.ForeignKey(Email, on_delete=models.CASCADE, null=True)
 
 

@@ -10,28 +10,35 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
 channel_layer = get_channel_layer()
-from .models import File, EmailFile, Email, User
+from .models import File, Email, User
+
 
 @database_sync_to_async
-
 def save_email(login, subject, received_date, sent_date, text, files, filenames) -> int:
     user = User.objects.get(login__exact=login)
     print(user)
     email = Email(theme=subject, date_of_dispatch=sent_date,
                   date_of_receive=received_date, description=" ".join(text), user=user, files=' '.join(filenames))
     email.save()
+
     for i in range(len(files)):
-        file = File(file=files[i], filename=filenames[i], email=email)
+        if i > len(filenames) - 1:
+            file = File(file=files[i], email=email)
+        else:
+            file = File(file=files[i], filename=filenames[i], email=email)
+
         file.save()
     return email.pk
+
+
 @database_sync_to_async
 def get_from_email(message) -> dict:
     email = Email.objects.get(pk=message['pk'])
-    dct = {"theme": email.theme, "date_of_dispatch": email.date_of_dispatch,
-           "date_of_receive": email.date_of_receive,
-           "text": email.description,
-           "filenames": email.files, "count": message["count"], "index": message["index"]}
-    print(dct)
+    print(email.date_of_dispatch)
+    dct = {"theme": email.theme, "date_of_dispatch": email.date_of_dispatch.strftime('%Y-%m-%d %H:%M:%S'),
+           "date_of_receive": email.date_of_receive.strftime('%Y-%m-%d %H:%M:%S'),
+           "text": email.description[:50],
+           "filenames": email.files, "count": message["count"], "index": message["index"], "id": message["pk"]}
     return dct
 
 
@@ -67,7 +74,6 @@ async def parse_message(mail_pass: str, login: str, mail_name: str):
             except Exception as e:
                 pass
 
-        print(subject)
         text = []
         for part in msg.walk():
             if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
@@ -79,26 +85,39 @@ async def parse_message(mail_pass: str, login: str, mail_name: str):
         filenames = []
         files = []
         for part in msg.walk():
+            # Если есть вложение
+            if part.get_content_disposition() == 'attachment':
+                # Извлечь имя вложения
+                filename = part.get_filename()
+                if filename:
+                    try:
+                        # Декодируем имя, если нужно
+                        decoded_filename = decode_header(filename)[0][0]
+                        if isinstance(decoded_filename, bytes):
+                            decoded_filename = decoded_filename.decode()
+                        filenames.append(decoded_filename)
+                    except Exception as e:
+                        print(e)
+            '''for part in msg.walk():
             if part.get_content_disposition() == 'attachment':
                 try:
                     filenames.append(decode_header(part.get_filename())[0][0].decode())
                 except Exception as e:
-                    pass
+                    pass'''
         for part in msg.walk():
             if part.get_content_disposition() == 'attachment':
                 file_content = part.get_payload(decode=True)
                 binary_data = bytearray(file_content)
 
                 files.append(binary_data)
-        pk=await save_email(subject=subject, sent_date=sent_date,
-                         received_date=received_date, text=" ".join(text), login=login, files=files,
-                         filenames=filenames)
+        print(received_date, sent_date)
+        pk = await save_email(subject=subject, sent_date=sent_date,
+                              received_date=received_date, text=" ".join(text), login=login, files=files,
+                              filenames=filenames)
         await asyncio.sleep(1)
-        print(pk)
-        # Convert  datetime datetime to str
         i += 1
 
-        dct = {"pk":pk,"count": count, "index": i}
+        dct = {"pk": pk, "count": count, "index": i}
 
         cleaned_login = re.sub('[^a-zA-Z0-9_.-]', '_', login)
 
@@ -106,5 +125,4 @@ async def parse_message(mail_pass: str, login: str, mail_name: str):
             "type": "send.messages",
             "message": dct
         })
-        print(11)
         count -= 1
