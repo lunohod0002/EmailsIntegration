@@ -18,7 +18,7 @@ def save_email(login, subject, received_date, sent_date, text, files, filenames)
     user = User.objects.get(login__exact=login)
     print(user)
     email = Email(theme=subject, date_of_dispatch=sent_date,
-                  date_of_receive=received_date, description=" ".join(text), user=user, files=' '.join(filenames))
+                  date_of_receive=received_date, description="  ".join(text), user=user, files=' '.join(filenames))
     email.save()
 
     for i in range(len(files)):
@@ -112,7 +112,7 @@ async def parse_message(mail_pass: str, login: str, mail_name: str):
                 files.append(binary_data)
         print(received_date, sent_date)
         pk = await save_email(subject=subject, sent_date=sent_date,
-                              received_date=received_date, text=" ".join(text), login=login, files=files,
+                              received_date=received_date, text="  ".join(text), login=login, files=files,
                               filenames=filenames)
         await asyncio.sleep(1)
         i += 1
@@ -125,4 +125,3 @@ async def parse_message(mail_pass: str, login: str, mail_name: str):
             "type": "send.messages",
             "message": dct
         })
-        count -= 1

@@ -7,6 +7,12 @@
   <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
   <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
     <style>
+    .progress-label {
+    position: absolute;
+    top: 4px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+}
     table {
       border-collapse: collapse;
       width: 100%;
@@ -19,10 +25,19 @@
     th {
       background-color: #f0f0f0;
     }
+    .progress-label {
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    font-weight: bold;
+  }
     </style>
 </head>
 <body>
-<div id="progressbar"></div>
+<div id="progressbar">
+    <div class="progress-label" id="progress-label">
+    </div>
+</div>
 
 <table>
     <thead>
@@ -58,11 +73,12 @@ socket.onmessage=function(event){
 }
 function updateProgressBar(count, index) {
     $("#progressbar").progressbar({
-        value: index
-    });
-   var bar = $('#progressbar .percentage');
+        value: index,
+        max: count
 
-   bar.css('width', index).text(index+" проверено");
+    });
+    $("#progress-label").text(  $("#progressbar").progressbar( "value" ) + " проверено из " + count );
+
    }
     function displayMessage(message) {
       const messageList = document.querySelector('#message-list');
